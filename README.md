@@ -22,14 +22,31 @@ Your final app should:
 - Display the plan clearly (and ideally explain the reasoning)
 - Include tests for the most important scheduling behaviors
 
-## Smarter Scheduling
+## Features
 
-Beyond the basic priority-first planner, PawPal+ includes four algorithmic improvements:
+### Scheduling Engine
 
-- **Multi-key sorting** — `generate_plan()` sorts tasks by priority (high first), then by time-of-day (morning before evening), then by shortest duration. This produces a schedule that reads like a real daily routine instead of a flat priority list.
-- **Predicate-based filtering** — `filter_tasks()` lets you narrow tasks by pet name, completion status, and/or category in any combination (e.g., "show me Mochi's pending walks").
-- **Recurring task auto-creation** — When a daily, weekly, or monthly task is marked complete, `create_next_occurrence()` uses `timedelta` to calculate the next due date and automatically adds a new task instance to the pet. One-time tasks (`"once"`) produce no follow-up.
-- **Lightweight conflict detection** — `detect_conflicts()` groups planned tasks by time slot and checks three conditions: same-pet overlap (one pet has too many tasks in a slot), cross-pet overlap (the owner is double-booked across pets), and total slot overflow. Conflicts are returned as warning strings — the program never crashes.
+- **Multi-key sorting** — `generate_plan()` sorts tasks by priority (high first), then by time-of-day (morning before evening), then by shortest duration. The result reads like a real daily routine: urgent morning tasks first, lighter evening tasks last.
+- **Greedy time-budget packing** — Tasks are added to the plan in sorted order until the owner's available minutes are full. A 30-min high-priority walk beats a 60-min low-priority grooming session when time is tight.
+- **Daily / weekly / monthly recurrence** — `create_next_occurrence()` uses `timedelta` to calculate the next due date when a task is completed. Daily tasks reappear tomorrow, weekly in 7 days, monthly in 30. One-time tasks (`"once"`) produce no follow-up.
+- **Frequency-aware due dates** — `is_due()` checks each task's `due_date` and completion status so future recurring tasks stay out of today's plan until they are actually due.
+
+### Conflict Detection
+
+- **Same-pet overlap** — Flags when one pet has multiple tasks in the same time slot whose combined duration exceeds the slot budget (e.g., a 45-min walk + 30-min bath in a 60-min evening slot).
+- **Cross-pet overlap** — Flags when the owner is double-booked across pets in the same slot (e.g., walking Mochi and grooming Luna both scheduled for the morning).
+- **Slot overflow** — Flags when total minutes in any slot exceed the budget, regardless of which pet owns the tasks.
+
+### Filtering and Search
+
+- **Predicate-based filtering** — `filter_tasks()` narrows tasks by pet name, completion status (`pending`/`done`), and/or category in any combination (e.g., "show me Mochi's pending walks").
+
+### Streamlit UI
+
+- **Sorted plan table** — The generated schedule displays as a numbered table ordered by time slot and priority.
+- **Visual conflict warnings** — Same-pet and cross-pet overlaps render as `st.warning` banners; slot overflows render as `st.error` with actionable tips for the owner.
+- **Live filtering** — Dropdowns for status, category, and pet name update a filtered task table in real time.
+- **Plan explainer** — An expandable section explains the sorting and packing logic behind the schedule.
 
 ## Getting started
 
@@ -75,3 +92,7 @@ The 29 tests cover the following areas:
 **★★★★☆ (4 / 5)**
 
 The test suite thoroughly covers sorting, recurrence, conflict detection, budget boundaries, and common edge cases. The missing star reflects that the tests do not yet cover the Streamlit UI layer or end-to-end integration beyond the scheduling engine.
+
+## Demo
+
+<img src="PawPals.png" alt="PawPal App" width="600"/>

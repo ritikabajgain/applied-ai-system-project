@@ -32,7 +32,12 @@ The system should be allow the user to enter the general owner and pet informati
 **a. Constraints and priorities**
 
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
+
+  The scheduler considers three main constraints: **time** (the owner's total available minutes per day), **priority** (high, medium, or low for each task), and **time of day** (morning, afternoon, or evening). It also checks whether a task is actually due today before including it.
+
 - How did you decide which constraints mattered most?
+
+  Priority comes first because a high-priority task like giving medication should never be skipped in favor of a low-priority one like a bonus play session. Time of day comes second so the schedule reads in a natural order from morning to evening. Duration is the last tiebreaker so that shorter tasks get packed in first, which helps fit more tasks into the day.
 
 **b. Tradeoffs**
 
@@ -55,12 +60,22 @@ The system should be allow the user to enter the general owner and pet informati
 **a. How you used AI**
 
 - How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
+
+  I used AI throughout the project. Early on I used it for **design brainstorming** — asking it to review my UML diagram and point out missing relationships (like Owner not being able to access its Pets). During implementation I used it for **writing code** like the sorting logic, conflict detection, and recurring task creation. I also used it to **generate tests**, **build the Streamlit UI**, and **refactor** the app layout when the screen got too cluttered.
+
 - What kinds of prompts or questions were most helpful?
+
+  The most helpful prompts were specific questions about edge cases, like "What are the most important edge cases to test for a pet scheduler with sorting and recurring tasks?" This gave me a clear list to work from instead of guessing what to test. Asking the AI to explain *why* a design choice matters (not just *what* to do) also helped me understand the tradeoffs.
 
 **b. Judgment and verification**
 
 - Describe one moment where you did not accept an AI suggestion as-is.
+
+  When the AI generated a test for an "orphaned pet name" edge case, the test was wrong — it set `pet_name = "Ghost"` before calling `pet.add_task()`, but `add_task()` overwrites `pet_name` with the pet's actual name. The test passed for the wrong reason. I caught this and the AI fixed it by moving the override to after `add_task()`.
+
 - How did you evaluate or verify what the AI suggested?
+
+  I ran `pytest -v` after every batch of changes and read through the test logic to make sure each test was actually checking what it claimed to check. When a test failed or passed suspiciously, I traced the code by hand to understand why.
 
 ---
 
@@ -69,12 +84,22 @@ The system should be allow the user to enter the general owner and pet informati
 **a. What you tested**
 
 - What behaviors did you test?
+
+  The test suite covers six areas: **sorting correctness** (tasks come back in the right order by priority, time slot, and duration), **recurrence logic** (completing a daily task creates a new one due tomorrow), **conflict detection** (same-pet overlap, cross-pet overlap, and slot overflow all produce warnings), **greedy packing** (tasks fill the time budget correctly at exact boundaries), **filtering** (combined pet + status + category filters return the right subset), and **edge cases** (empty pets, no tasks, all tasks completed, unknown time slots, invalid filter values).
+
 - Why were these tests important?
+
+  Sorting and packing are the core of the scheduler — if those are wrong, every plan is wrong. Recurrence is the trickiest state mutation because it creates new objects and adds them to existing pets, so it is easy to introduce bugs there. Conflict detection is a safety feature — if it silently misses an overlap, the owner could end up double-booked without knowing. The edge case tests make sure the app does not crash when data is missing or unexpected.
 
 **b. Confidence**
 
 - How confident are you that your scheduler works correctly?
+
+  **4 out of 5 stars.** The 29 tests cover all the backend logic thoroughly, including boundary conditions and error paths. The missing star is because the tests do not cover the Streamlit UI layer — things like whether buttons trigger the right session state updates or whether the conflict warnings actually render on screen.
+
 - What edge cases would you test next if you had more time?
+
+  I would test **completing the same task twice** (to check if it creates a duplicate next occurrence), **tasks with zero-minute duration**, and **very large numbers of tasks** (like 100+) to make sure the sorting and packing still perform well. I would also add integration tests for the Streamlit UI using something like `AppTest`.
 
 ---
 
@@ -84,10 +109,16 @@ The system should be allow the user to enter the general owner and pet informati
 
 - What part of this project are you most satisfied with?
 
+  I am most satisfied with how the **scheduling engine came together**. The multi-key sorting, greedy packing, and conflict detection all work as separate pieces but combine into a plan that actually makes sense when you read it. The fact that the same Scheduler class handles sorting, filtering, conflicts, and recurrence — and the Streamlit UI just calls those methods — kept the code clean and easy to test.
+
 **b. What you would improve**
 
 - If you had another iteration, what would you improve or redesign?
 
+  I would add **exact start times** instead of just broad time slots. Right now "morning" means anything before noon, so the scheduler cannot tell you that two 8 AM tasks actually conflict. I would also let owners **drag and reorder tasks** in the UI instead of relying only on the automatic sort. Finally, I would add a way to **persist data** (like a small database or JSON file) so that tasks are not lost when the app restarts.
+
 **c. Key takeaway**
 
 - What is one important thing you learned about designing systems or working with AI on this project?
+
+  I learned that **starting with a UML diagram and then updating it as the code changes** is much better than trying to get the design perfect upfront. My initial design had a separate Schedule class tied to one pet, but during implementation I realized the Scheduler needed to see all pets at once for conflict detection. If I had not been willing to change the design, I would have been stuck with a broken architecture. AI was helpful for spotting these issues early, but I still had to make the final call on what made sense.
