@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from pawpal_system import Owner, Pet, Task, Scheduler
 from ai_engine import AIEngine
 from retriever import PetCareRetriever
+from ai_test_check import run_all_checks
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -475,6 +476,7 @@ if st.button("🗓️ Generate schedule"):
             )
 
             confidence = scheduler.compute_confidence(plan, due_tasks)
+            st.session_state["last_confidence"] = confidence
             st.metric(
                 label="🤖 AI Confidence Score",
                 value=f"{confidence:.2f}",
@@ -545,11 +547,16 @@ if st.button("🗓️ Generate schedule"):
 
             ai = AIEngine()
             for task in plan:
+                explanation = ai.explain_task(task)
+                print(f"AI Log [task explanation] {task.title} ({task.pet_name}): {explanation}")
                 st.markdown(f"**{task.title}** *(for {task.pet_name})*")
-                st.caption(ai.explain_task(task))
+                st.caption(explanation)
 
+            schedule_explanation = ai.explain_schedule(plan)
+            print(f"AI Log [schedule explanation]: {schedule_explanation}")
+            print(f"AI Log [confidence score]: {confidence:.2f}")
             with st.expander("Why was this schedule built this way?"):
-                st.markdown(ai.explain_schedule(plan))
+                st.markdown(schedule_explanation)
 
 # ═══════════════════════════════════════════════════════════════
 # PET OVERVIEW  (Pet.get_info)
@@ -602,6 +609,27 @@ if rag_query.strip():
             st.info(tip["tip"])
     else:
         st.warning("No matching tips found. Try rephrasing your question (e.g. 'dog walk', 'cat grooming', 'feeding schedule').")
+
+# ═══════════════════════════════════════════════════════════════
+# AI RELIABILITY CHECK
+# ═══════════════════════════════════════════════════════════════
+
+st.divider()
+st.markdown('<div class="section-header"><span class="emoji">🧪</span><h3>AI Reliability Check</h3></div>', unsafe_allow_html=True)
+st.caption("Automated smoke-test run on every page load to confirm AI output is valid.")
+
+check = run_all_checks()
+
+if check["passed"]:
+    st.success(f"✔ {check['ai_test']}")
+    st.success("✔ System behaving as expected under normal inputs.")
+else:
+    st.error(f"✘ AI test failed — {check['ai_test']}")
+
+if "last_confidence" in st.session_state:
+    st.success(f"✔ Confidence Score: {st.session_state['last_confidence']:.2f}")
+else:
+    st.info("Generate a schedule to see the confidence score here.")
 
 # ── Footer ──────────────────────────────────────────────────────
 
