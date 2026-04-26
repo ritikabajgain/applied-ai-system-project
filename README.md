@@ -204,3 +204,59 @@ Building PawPal+ reinforced a principle that is easy to state but harder to prac
 ## Demo
 
 <img src="PawPals.png" alt="PawPal+ App Screenshot" width="650"/>
+
+---
+
+## 🧠 Reflection and Ethics
+
+### Limitations and Biases
+
+PawPal+ works well within the boundaries it was designed for, but those boundaries are narrow and worth being honest about.
+
+**What the system cannot do well:**
+- The keyword retriever fails silently on paraphrased or contextually phrased questions. Typing "my dog needs exercise" returns no results because neither "exercise" nor "needs" appears in the tag list — only "walk" or "dog" would match. Users who do not know the right vocabulary get nothing, with no signal that they are close.
+- The AI explanations are template-driven, not generative. Every "walk" category task receives the same sentence regardless of the dog's breed, age, or health history. A senior dog with arthritis and a healthy puppy get identical advice.
+- The confidence score is a proxy, not a ground truth. A plan can score 0.90 and still be genuinely bad — for example, if all three high-priority tasks are medical but the owner only has 15 minutes, the score reflects efficient use of that 15 minutes, not whether the pet's needs were met.
+
+**Possible biases:**
+- **Prioritisation logic** assumes that "high" priority tasks are always more important than "medium" ones. In reality, a daily feeding (medium priority, short duration) may matter more to a pet's welfare than a monthly grooming appointment (marked high by a user who wants it done). The system takes user-assigned priority at face value without questioning it.
+- **Keyword retrieval** is biased toward the vocabulary in `pet_knowledge.json`. Tips about dogs and cats are well-covered; topics like rabbits, birds, or reptiles return nothing. A user with a non-standard pet receives no guidance rather than an honest "I don't know."
+- **Template explanations** repeat the same framing for every task in a category, which can make the AI Insights section feel authoritative even when the advice does not apply to a specific animal or situation.
+
+---
+
+### Misuse Risk and Prevention
+
+**How the system could be misused:**
+
+The most realistic risk is over-reliance. A user who treats the generated schedule as a professional veterinary recommendation — rather than a convenience tool — could make genuinely poor decisions. For example, the system will schedule a "medical check" task if it is due and fits the time budget, but it has no way of knowing whether that task was created correctly, whether the appointment is actually booked, or whether the pet's condition is urgent.
+
+A second risk is that the confidence score, displayed prominently as a single number, may convey false precision. A score of 0.85 looks reassuring; a user might not investigate further even if the plan has skipped a critical feeding task because the time budget was full.
+
+**Safeguards built into the system:**
+- The confidence score is accompanied by a tooltip that explains exactly what it measures — coverage, utilisation, and conflict absence. It does not claim to measure animal welfare or task correctness.
+- Conflict warnings are shown explicitly alongside the plan, not hidden behind the score. The user is asked to review them, not just accept the output.
+- Every AI explanation is clearly labelled as an AI Insight, not a veterinary recommendation. The language is general and deliberately avoids diagnostic claims.
+- The "AI Reliability Check" panel runs a smoke test on every page load and surfaces failures visibly rather than degrading silently.
+
+---
+
+### Reliability Testing Insight
+
+The most surprising finding during testing was how gracefully the system handled well-structured inputs and how completely it failed on ambiguous ones — with no middle ground. When a task had a clear category (`"walk"`, `"feeding"`) and a recognised time slot, the AI explanation was consistent and coherent every time. But when a task was created with `category="other"` and no meaningful title, the explanation fell back to a generic fallback sentence that was technically correct but useless.
+
+This revealed a gap between "the AI did not crash" and "the AI was helpful." The smoke test in `ai_test_check.py` checks that output is non-empty and longer than 10 characters — it passes even for the useless fallback. A more meaningful reliability check would evaluate output relevance, not just output presence. That distinction — between a system that does not fail and a system that genuinely helps — is one of the more useful things this project made concrete.
+
+---
+
+### Human–AI Collaboration Reflection
+
+Claude was used throughout the development of the AI-enhanced features of PawPal+. The experience was genuinely collaborative in some areas and required careful verification in others.
+
+**Where AI assistance was most helpful:**
+
+When asked to design the `compute_confidence` method, Claude suggested splitting the score into three independently interpretable components — coverage, utilisation, and conflict penalty — rather than a single opaque formula. That framing made the score explainable to a non-technical user and made the weighting decisions auditable. It was a structural suggestion that improved the design, not just the code.
+
+**Where AI assistance required correction:**
+
+Early in the chatbot integration, Claude generated a version of the RAG section that instantiated `PetCareRetriever()` inside a loop that re-ran on every Streamlit render cycle, loading and parsing `pet_knowledge.json` on every keystroke. The code was functionally correct but unnecessarily expensive. It required a manual review of the render cycle to catch, and a targeted fix to move instantiation outside the hot path. This was a good reminder that AI-generated code can be syntactically sound and logically correct while still being architecturally poor — and that reading generated code critically is not optional.
