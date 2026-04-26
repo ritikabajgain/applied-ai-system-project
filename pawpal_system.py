@@ -310,6 +310,27 @@ class Scheduler:
                      f"{self.available_time}-minute window are skipped.")
         return "\n".join(lines)
 
+    def compute_confidence(self, plan: list[Task], due_tasks: list[Task]) -> float:
+        """Return a confidence score in [0, 1] for the generated schedule.
+
+        Three equally-weighted components:
+          - coverage:    fraction of due tasks that made it into the plan
+          - utilisation: fraction of available time actually used (capped at 1)
+          - conflict:    1.0 if no conflicts, reduced by 0.15 per conflict warning
+        """
+        if not due_tasks:
+            return 0.0
+
+        coverage = len(plan) / len(due_tasks)
+
+        time_used = sum(t.duration_minutes for t in plan)
+        utilisation = min(time_used / self.available_time, 1.0) if self.available_time > 0 else 0.0
+
+        warnings = self.detect_conflicts()
+        conflict = max(0.0, 1.0 - len(warnings) * 0.15)
+
+        return round((coverage + utilisation + conflict) / 3, 2)
+
     def get_total_planned_time(self) -> int:
         return sum(task.duration_minutes for task in self.plan)
 

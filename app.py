@@ -474,6 +474,13 @@ if st.button("🗓️ Generate schedule"):
                 f"**{remaining} min** remaining."
             )
 
+            confidence = scheduler.compute_confidence(plan, due_tasks)
+            st.metric(
+                label="🤖 AI Confidence Score",
+                value=f"{confidence:.2f}",
+                help="Coverage of due tasks + time utilisation + absence of conflicts, averaged to a 0–1 score.",
+            )
+
             st.markdown("#### Daily Plan (sorted: priority > time slot > duration)")
             st.table(
                 [
