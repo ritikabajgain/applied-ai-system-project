@@ -1,6 +1,8 @@
 import streamlit as st
 from datetime import date, timedelta
 from pawpal_system import Owner, Pet, Task, Scheduler
+from ai_engine import AIEngine
+from retriever import PetCareRetriever
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -149,7 +151,7 @@ st.markdown("""
 <div class="paw-header">
     <div><span class="paw-icon">🐾</span></div>
     <h1>PawPal+</h1>
-    <p>Your happy pet care planner &mdash; schedule, sort & stay on track!</p>
+    <p>Your happy pet care planner - schedule, sort & stay on track!</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -531,6 +533,17 @@ if st.button("🗓️ Generate schedule"):
                     "full. Recurring tasks only appear when due."
                 )
 
+            st.divider()
+            st.markdown('<div class="section-header"><span class="emoji">🧠</span><h3>AI Insights</h3></div>', unsafe_allow_html=True)
+
+            ai = AIEngine()
+            for task in plan:
+                st.markdown(f"**{task.title}** *(for {task.pet_name})*")
+                st.caption(ai.explain_task(task))
+
+            with st.expander("Why was this schedule built this way?"):
+                st.markdown(ai.explain_schedule(plan))
+
 # ═══════════════════════════════════════════════════════════════
 # PET OVERVIEW  (Pet.get_info)
 # ═══════════════════════════════════════════════════════════════
@@ -563,6 +576,25 @@ if st.session_state.pets:
                 )
 else:
     st.info("Add pets above to see their overview here.")
+
+# ═══════════════════════════════════════════════════════════════
+# ASK PAWPAL AI  (RAG — keyword retrieval over pet_knowledge.json)
+# ═══════════════════════════════════════════════════════════════
+
+st.divider()
+st.markdown('<div class="section-header"><span class="emoji">🐾</span><h3>Ask PawPal AI</h3></div>', unsafe_allow_html=True)
+st.caption("Ask anything about pet care — feeding, walking, grooming, enrichment, and more.")
+
+rag_query = st.text_input("Your question", placeholder="e.g. How often should I brush my dog?", key="rag_query")
+
+if rag_query.strip():
+    retriever = PetCareRetriever()
+    results = retriever.retrieve(rag_query)
+    if results:
+        for tip in results:
+            st.info(tip["tip"])
+    else:
+        st.warning("No matching tips found. Try rephrasing your question (e.g. 'dog walk', 'cat grooming', 'feeding schedule').")
 
 # ── Footer ──────────────────────────────────────────────────────
 

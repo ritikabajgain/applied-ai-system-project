@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "tags": ["dog", "walk", "exercise", "outdoor"],
+    "tip": "Dogs need at least 30 minutes of walking per day. Regular walks support cardiovascular health, healthy weight, and reduce anxiety-driven behaviours like chewing or barking."
+  },
+  {
+    "id": 2,
+    "tags": ["dog", "cat", "feeding", "diet", "food", "meal"],
+    "tip": "Feed pets at consistent times each day. Irregular meal schedules can disrupt digestion and cause stress. Always provide fresh water alongside every meal."
+  },
+  {
+    "id": 3,
+    "tags": ["cat", "indoor", "enrichment", "play", "boredom"],
+    "tip": "Indoor cats need daily play sessions of at least 15 minutes to prevent boredom and obesity. Wand toys, puzzle feeders, and window perches are excellent sources of stimulation."
+  },
+  {
+    "id": 4,
+    "tags": ["dog", "cat", "grooming", "brush", "coat", "fur", "shedding"],
+    "tip": "Brush your pet's coat at least once a week to reduce shedding, prevent matting, and spot skin issues early. Long-haired breeds may need daily brushing."
+  },
+  {
+    "id": 5,
+    "tags": ["dog", "cat", "medical", "vet", "health", "checkup", "vaccine"],
+    "tip": "Annual vet check-ups catch illnesses before they become serious. Keep vaccinations, flea, and tick treatments up to date even if your pet appears healthy."
+  },
+  {
+    "id": 6,
+    "tags": ["dog", "enrichment", "training", "mental", "stimulation", "trick"],
+    "tip": "Mental stimulation is as important as physical exercise for dogs. Five minutes of training new tricks or scent games each day can significantly reduce restless behaviour."
+  },
+  {
+    "id": 7,
+    "tags": ["cat", "grooming", "nails", "claws", "trim"],
+    "tip": "Trim your cat's nails every two to three weeks to prevent overgrowth and accidental scratching. Use dedicated pet nail clippers and avoid cutting into the pink quick."
+  },
+  {
+    "id": 8,
+    "tags": ["dog", "walk", "puppy", "young", "socialise"],
+    "tip": "Puppies under six months benefit from short, frequent walks of 5 minutes per month of age. Early socialisation during walks builds confidence and reduces fear-based aggression."
+  },
+  {
+    "id": 9,
+    "tags": ["cat", "feeding", "senior", "old", "age", "diet"],
+    "tip": "Senior cats (7+ years) have changing nutritional needs. Switch to a senior formula diet and watch for weight loss, increased thirst, or changes in litter-box habits."
+  },
+  {
+    "id": 10,
+    "tags": ["dog", "cat", "hydration", "water", "drink"],
+    "tip": "Pets should drink roughly 30–50 ml of water per kg of body weight daily. A water fountain can encourage cats and dogs that prefer running water to stay well hydrated."
+  },
+  {
+    "id": 11,
+    "tags": ["dog", "grooming", "bath", "wash", "smell", "clean"],
+    "tip": "Most dogs only need a bath every four to six weeks. Over-bathing strips natural oils from the coat. Use a mild, pet-safe shampoo and dry thoroughly to prevent skin irritation."
+  },
+  {
+    "id": 12,
+    "tags": ["cat", "dog", "enrichment", "environment", "toy", "rotate"],
+    "tip": "Rotate your pet's toys every few days to maintain novelty. Pets quickly lose interest in the same toy, but brief periods away make it feel new again, sustaining engagement."
+  }
+]
