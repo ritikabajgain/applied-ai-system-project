@@ -207,6 +207,42 @@ Building PawPal+ reinforced a principle that is easy to state but harder to prac
 
 ---
 
+## 🎬 AI Feature Walkthrough
+
+The three screenshots below demonstrate each AI-powered addition to PawPal+. Each feature was built on top of the original scheduling engine without modifying its core logic.
+
+---
+
+### 1. 🧠 AI-Powered Task & Schedule Explanations
+
+After a schedule is generated, the **AI Insights** section appears beneath the daily plan. For every scheduled task, the AI engine produces a 1–2 sentence plain-English explanation based on the task's category (e.g. walk, feeding, grooming) and preferred time of day. Below the per-task explanations, a collapsible expander titled **"Why was this schedule built this way?"** provides a short paragraph describing how tasks were ranked by priority and how time constraints shaped the final order.
+
+This feature lives in `ai_engine.py` (`AIEngine.explain_task` and `AIEngine.explain_schedule`) and is wired into `app.py` without touching `Scheduler`.
+
+![alt text](image.png)
+
+---
+
+### 2. 💬 PawPal Chatbot (RAG-Based Pet Care Q&A)
+
+The **PawPal Chatbot** panel sits near the bottom of the app. A **"💬 Open chat"** button toggles the chat panel open; the panel shows a full conversation history rendered with Streamlit's native `st.chat_message` component. When the user types a question, it is passed to `PetCareRetriever.retrieve()`, which scores every tip in `pet_knowledge.json` by keyword overlap (+2 per tag match, +1 per word match in the tip text) and returns the top 1–3 results as bullet points in the assistant's reply. A **"🗑️ Clear chat"** button resets the conversation.
+
+![alt text](image-1.png)
+
+---
+
+### 3. 🤖 AI Confidence Score & Reliability Check
+
+Two related features work together to make the AI's behaviour measurable.
+
+The **AI Confidence Score** (`st.metric`) appears immediately after the schedule summary banner. It is a 0–1 value computed by `Scheduler.compute_confidence()` as the average of three components: **coverage** (fraction of due tasks scheduled), **utilisation** (fraction of available time used), and **conflict penalty** (reduced by 0.15 per detected conflict). The score is stored in session state so it is also accessible elsewhere in the page.
+
+The **🧪 AI Reliability Check** section near the footer runs `run_all_checks()` from `ai_test_check.py` on every page load. It confirms that `AIEngine.explain_task()` returns a non-empty, meaningful string, and surfaces the result as a green success banner or a red error — so failures are never silent.
+
+![alt text](image-2.png)
+
+---
+
 ## 🧠 Reflection and Ethics
 
 ### Limitations and Biases
@@ -214,11 +250,13 @@ Building PawPal+ reinforced a principle that is easy to state but harder to prac
 PawPal+ works well within the boundaries it was designed for, but those boundaries are narrow and worth being honest about.
 
 **What the system cannot do well:**
+
 - The keyword retriever fails silently on paraphrased or contextually phrased questions. Typing "my dog needs exercise" returns no results because neither "exercise" nor "needs" appears in the tag list — only "walk" or "dog" would match. Users who do not know the right vocabulary get nothing, with no signal that they are close.
 - The AI explanations are template-driven, not generative. Every "walk" category task receives the same sentence regardless of the dog's breed, age, or health history. A senior dog with arthritis and a healthy puppy get identical advice.
 - The confidence score is a proxy, not a ground truth. A plan can score 0.90 and still be genuinely bad — for example, if all three high-priority tasks are medical but the owner only has 15 minutes, the score reflects efficient use of that 15 minutes, not whether the pet's needs were met.
 
 **Possible biases:**
+
 - **Prioritisation logic** assumes that "high" priority tasks are always more important than "medium" ones. In reality, a daily feeding (medium priority, short duration) may matter more to a pet's welfare than a monthly grooming appointment (marked high by a user who wants it done). The system takes user-assigned priority at face value without questioning it.
 - **Keyword retrieval** is biased toward the vocabulary in `pet_knowledge.json`. Tips about dogs and cats are well-covered; topics like rabbits, birds, or reptiles return nothing. A user with a non-standard pet receives no guidance rather than an honest "I don't know."
 - **Template explanations** repeat the same framing for every task in a category, which can make the AI Insights section feel authoritative even when the advice does not apply to a specific animal or situation.
@@ -234,6 +272,7 @@ The most realistic risk is over-reliance. A user who treats the generated schedu
 A second risk is that the confidence score, displayed prominently as a single number, may convey false precision. A score of 0.85 looks reassuring; a user might not investigate further even if the plan has skipped a critical feeding task because the time budget was full.
 
 **Safeguards built into the system:**
+
 - The confidence score is accompanied by a tooltip that explains exactly what it measures — coverage, utilisation, and conflict absence. It does not claim to measure animal welfare or task correctness.
 - Conflict warnings are shown explicitly alongside the plan, not hidden behind the score. The user is asked to review them, not just accept the output.
 - Every AI explanation is clearly labelled as an AI Insight, not a veterinary recommendation. The language is general and deliberately avoids diagnostic claims.
